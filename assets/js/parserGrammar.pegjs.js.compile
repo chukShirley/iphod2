@@ -1,0 +1,28 @@
+// bible ref grammar
+// needs to be compiled 
+reading 
+  = b:book r:refs { return {book: b, refs: r}; }
+  / b:book { return {book: b, refs: [{chap: 1, vsFrom: 1, vsTo: 999}] }; }
+refs = a:ref+ {return Array.isArray(a) ? a : [a]; }
+ref 
+  = c:number colon v1:number dash v2:number 'end' { 
+      return [ {chap: c, vsFrom: v1, vsTo: 999}, {chap: v2, vsFrom: 1, vsTo: 999} ]
+    }
+  / c1:number colon v1:number dash c2:number colon v2:number {
+      return [ {chap:c1, vsFrom:v1, vsTo:999}, {chap:c2, vsFrom:1, vsTo:v2}]
+    }
+  / c:number colon v1:number dash v2:number comma? {
+      console.log("V1 V2: ", v1, v2, v2 > v1)
+      if (parseInt(v2) > parseInt(v1)) return {chap: c, vsFrom: v1, vsTo: v2};
+      return [ {chap: c, vsFrom: v1, vsTo: 999}, {chap: v2, vsFrom: 1, vsTo: 999} ]
+    }
+  / c:number colon v1:number dash 'end' comma? { return {chap: c, vsFrom: v1, vsTo: 999}; }
+  / c:number colon v1:number comma? { return {chap: c, vsFrom: v1, vsTo: v1}; }
+  / c:number  { return {chap: c, vsFrom: 1, vsTo: 999}; }
+colon = ws?[:.]ws?
+dash = ws?[-—]ws?
+comma = ws?[,]ws?
+number = n:[0-9]+ws? { return n.join(''); }
+book = n:[1-4]? ws? w:word+ {return n ? [n].concat(w).join(' ') : w.join(' ')}
+word = w:([a-zA-Z]+) ws? {return w.join('')}
+ws = [ \t\n\r]
